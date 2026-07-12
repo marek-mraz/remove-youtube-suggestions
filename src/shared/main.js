@@ -400,7 +400,7 @@ const SECTIONS = [
         name: "Hide all comments",
         tags: "Basic",
         id: "remove_comments",
-        defaultValue: true,
+        defaultValue: false,
       },
       {
         name: "Hide all but the timestamped comments",
