@@ -6,3 +6,4 @@ _scratch/
 node_modules/
 dist/
 .git
+repomix-output.xml

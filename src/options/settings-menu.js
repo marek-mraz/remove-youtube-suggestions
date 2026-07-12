@@ -448,17 +448,7 @@ let awaitingUpgrade = false;
 let upgradePollInterval = null;
 
 async function refreshLicense(force = false) {
-  const signedIn = await Auth.isSignedIn();
-  if (!signedIn) return;
-
-  const licenseData = await License.checkLicense(force);
-  updatePremiumUI(licenseData);
-  if (licenseData.isPremium && awaitingUpgrade) {
-    recordEvent('Checkout Completed', { source: licenseData.source });
-    awaitingUpgrade = false;
-    stopUpgradePolling();
-    displayStatus('Welcome to Premium!');
-  }
+  // Custom build: paywall removed — never contact the license server.
 }
 
 function startUpgradePolling() {
@@ -485,41 +475,21 @@ window.addEventListener('focus', handleVisibilityRefresh);
 
 // Initialize account state on load
 async function initAccountState() {
-  const signedIn = await Auth.isSignedIn();
-  if (signedIn) {
-    ACCOUNT_OPTION.textContent = 'Account';
-    // Provisionally treat as free_signed_in until license check returns
-    HTML.setAttribute('tier', TIER.FREE_SIGNED_IN);
-    updateSlotIndicator();
-    // Check license in background
-    refreshLicense(true);
-  } else {
-    ACCOUNT_OPTION.textContent = 'Sign In';
-    HTML.setAttribute('tier', TIER.FREE);
-    updateSlotIndicator();
-    // Auto-open sign-in modal if ?signin=1 param is present
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('signin') === '1') {
-      openSigninModal();
-    }
+  // Custom build: paywall removed — always premium, no sign-in, no server calls.
+  HTML.setAttribute('tier', TIER.PREMIUM);
+  ACCOUNT_OPTION.setAttribute('hidden', '');
+  if (ACCOUNT_OPTION.nextElementSibling?.tagName === 'HR') {
+    ACCOUNT_OPTION.nextElementSibling.setAttribute('hidden', '');
   }
+  updateSlotIndicator();
 }
 initAccountState();
 
-// Turn off every premium feature (including menu-level ones like schedule/password).
-// Used when dropping to the `free` tier via sign-out or license revocation.
-function disableAllPremiumFeatures() {
-  PREMIUM_FEATURE_IDS.forEach(id => updateSetting(id, false));
-}
+// Custom build: paywall removed — nothing may turn premium features off.
+function disableAllPremiumFeatures() {}
 
-// When transitioning into `free_signed_in` (e.g. subscription lapsed while the
-// options page is open), disable any premium features beyond FREE_PREMIUM_SLOTS
-// so current state matches the new tier. Reuses the shared enforceSlotBudget
-// helper and routes writes through updateSetting so the full UI stays in sync.
-function pruneToSlotBudget() {
-  const overBudget = enforceSlotBudget(cache, PREMIUM_CONFIG.FREE_PREMIUM_SLOTS);
-  Object.keys(overBudget).forEach(id => updateSetting(id, false));
-}
+// Custom build: paywall removed — no slot budget to enforce.
+function pruneToSlotBudget() {}
 
 function updatePremiumUI(licenseData) {
   if (licenseData && licenseData.signedOut) {

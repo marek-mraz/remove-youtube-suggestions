@@ -38,10 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return acc;
     }, {});
 
-    // Show logging opt-in modal if user hasn't responded yet
-    if (!localSettings.log_prompt_answered) {
-      showLogPrompt();
-    }
+    // Custom build: analytics disabled — never show the logging opt-in prompt.
 
     browser.tabs.query({ currentWindow: true, active: true }, tabs => {
       if (!tabs || tabs.length === 0) return;

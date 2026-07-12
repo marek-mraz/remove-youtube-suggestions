@@ -118,9 +118,8 @@ const License = {
   },
 
   getTierSync(licenseToken, sessionToken) {
-    if (this.isPremiumSync(licenseToken)) return TIER.PREMIUM;
-    if (sessionToken) return TIER.FREE_SIGNED_IN;
-    return TIER.FREE;
+    // Custom build: paywall removed — every install runs as premium.
+    return TIER.PREMIUM;
   },
 
   // Create checkout session for subscription
