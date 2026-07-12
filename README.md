@@ -67,8 +67,8 @@ To cut a release:
 
 ```bash
 git push origin main                 # publish your commits first
-git tag v4.3.82.0                    # tag matching the manifest version
-git push origin v4.3.82.0            # pushing the v* tag triggers the workflow
+git tag v4.3.83.0                    # tag matching the manifest version
+git push origin v4.3.83.0            # pushing the v* tag triggers the workflow
 ```
 
 Then watch the **Actions** tab; the Release appears under **Releases** when the
