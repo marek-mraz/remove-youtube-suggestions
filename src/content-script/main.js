@@ -49,6 +49,8 @@ let frameRequested = false;
 let isRunning = false;
 let lastScheduleCheck;
 const scheduleInterval = 2_000; // 2 seconds
+let lastRevertCheck;
+const revertInterval = 5_000; // 5 seconds
 let lastRedirect;
 const redirectInterval = 1_000; // 1 second
 
@@ -181,6 +183,24 @@ function runDynamicSettings() {
       if (scheduleChange) {
         updateSetting('global_enable', !on);
       }
+    }
+  } catch (error) {
+    console.log(error);
+  }
+
+  // Auto-revert: restore features that were manually turned off more than
+  // AUTO_REVERT_DELAY_MS ago. Runs even while the extension is disabled so a
+  // manual global off comes back too.
+  try {
+    const revertCheckElapsed = Date.now() - lastRevertCheck > revertInterval;
+    if (!lastRevertCheck || revertCheckElapsed) {
+      lastRevertCheck = Date.now();
+      browser.storage.local.get('pending_reverts', ({ pending_reverts }) => {
+        const { due, remaining } = processPendingReverts(pending_reverts, (id, value) => {
+          updateSetting(id, value);
+        });
+        if (due.length) browser.storage.local.set({ pending_reverts: remaining });
+      });
     }
   } catch (error) {
     console.log(error);

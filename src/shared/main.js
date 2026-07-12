@@ -400,7 +400,7 @@ const SECTIONS = [
         name: "Hide all comments",
         tags: "Basic",
         id: "remove_comments",
-        defaultValue: false,
+        defaultValue: true,
       },
       {
         name: "Hide all but the timestamped comments",
@@ -611,6 +611,38 @@ const SECTIONS = [
     ]
   },
   {
+    name: "Facebook",
+    tags: "Facebook",
+    options: [
+      {
+        name: "Redirect home feed to friends-only, most recent",
+        id: "fb_redirect_friends",
+        defaultValue: true,
+      },
+      {
+        name: "Redirect Reels to friends-only, most recent",
+        id: "fb_redirect_reels",
+        defaultValue: true,
+      },
+    ]
+  },
+  {
+    name: "Instagram",
+    tags: "Instagram",
+    options: [
+      {
+        name: "Redirect home feed to Following",
+        id: "ig_redirect_following",
+        defaultValue: true,
+      },
+      {
+        name: "Redirect Reels to the Following feed",
+        id: "ig_redirect_reels",
+        defaultValue: true,
+      },
+    ]
+  },
+  {
     name: "Other",
     tags: "Other",
     options: [
@@ -665,6 +697,11 @@ const SECTIONS = [
           }
         },
         premium: true,
+      },
+      {
+        name: "Auto-restore features turned off (after 1 minute)",
+        id: "auto_revert",
+        defaultValue: true,
       },
     ]
   },
@@ -821,6 +858,11 @@ const idToShortId = {
   "enable_theater":                    '94',
   "remove_playables":                  '95',
   "remove_sub_most_relevant":          '96',
+  "auto_revert":                       '97',
+  "fb_redirect_friends":               '98',
+  "fb_redirect_reels":                 '99',
+  "ig_redirect_following":            '100',
+  "ig_redirect_reels":                '101',
 };
 
 
@@ -881,4 +923,42 @@ function enforceSlotBudget(settings, slotLimit) {
     }
   });
   return writeBack;
+}
+
+
+// --- Auto-revert (commitment device) ---
+// When the user *manually* turns a protected feature off, it is automatically
+// turned back on after AUTO_REVERT_DELAY_MS. Pending reverts live in storage
+// under `pending_reverts` ({ settingId: revertAtMs }) so any context (options
+// page or a YouTube tab) can execute them. Effect-driven and programmatic
+// changes (schedule, timed changes, option `effects`) are never scheduled.
+const AUTO_REVERT_DELAY_MS = 60 * 1000;
+
+// Not protected: the radio-style redirect group (turning one on legitimately
+// turns the others off), the reveal-box preferences, and auto_revert itself
+// (the escape hatch — protecting it would make it impossible to disable).
+const AUTO_REVERT_EXCLUDED = new Set([
+  'auto_revert',
+  'redirect_to_subs', 'redirect_to_wl', 'redirect_to_library', 'redirect_off',
+  'add_reveal_homepage', 'add_reveal_sidebar', 'add_reveal_end_of_video',
+]);
+
+const AUTO_REVERT_IDS = new Set([
+  ...SECTIONS.flatMap(s => s.options.map(o => o.id))
+    .filter(id => !AUTO_REVERT_EXCLUDED.has(id)),
+  'global_enable',
+]);
+
+// Split a pending_reverts map into due and not-yet-due entries, and apply the
+// due ones via the caller's setter. Returns { due, remaining }; the caller
+// persists `remaining` back to storage when `due` is non-empty.
+function processPendingReverts(pendingReverts, applySetting, now = Date.now()) {
+  const due = [];
+  const remaining = {};
+  Object.entries(pendingReverts || {}).forEach(([id, ts]) => {
+    if (now >= Number(ts)) due.push(id);
+    else remaining[id] = ts;
+  });
+  due.forEach(id => applySetting(id, true));
+  return { due, remaining };
 }

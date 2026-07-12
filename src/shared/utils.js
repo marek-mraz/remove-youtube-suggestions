@@ -11,6 +11,10 @@ const videoPageRegex   = new RegExp('.*://(www|m)\\.youtube\\.com/watch\\?v=.*',
 const channelRegex     = new RegExp('.*://.*youtube\\.com/(@|channel)', 'i');
 const subsRegex        = new RegExp(/\/feed\/subscriptions$/, 'i');
 
+/* Other supported sites */
+const facebookRegex    = new RegExp('.*://www\\.facebook\\.com/.*', 'i');
+const instagramRegex   = new RegExp('.*://www\\.instagram\\.com/.*', 'i');
+
 
 /* Scheduling */
 function timeIsValid(times) {

@@ -1,21 +1,18 @@
 {
-  "name": "RYS — Remove YouTube Suggestions",
+  "name": "RYS \u2014 Remove YouTube Suggestions",
   "description": "Spend less time on YouTube. Customize YouTube's user interface to be less engaging.",
   "homepage_url": "https://github.com/lawrencehook/remove-youtube-suggestions",
   "manifest_version": 3,
-  "version": "4.3.81",
-
+  "version": "4.3.81.1",
   "icons": {
     "16": "/images/16.png",
     "32": "/images/32.png",
     "64": "/images/64.png",
     "128": "/images/128.png"
   },
-
   "background": {
     "service_worker": "/background/events.js"
   },
-
   "content_scripts": [
     {
       "js": [
@@ -26,15 +23,28 @@
         "/shared/banners.js",
         "/content-script/main.js"
       ],
-      "css": ["/content-script/main.css"],
+      "css": [
+        "/content-script/main.css"
+      ],
       "all_frames": true,
       "matches": [
         "*://www.youtube.com/*",
-        "*://m.youtube.com/*"],
+        "*://m.youtube.com/*"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "js": [
+        "/shared/main.js",
+        "/content-script/social.js"
+      ],
+      "matches": [
+        "*://www.facebook.com/*",
+        "*://www.instagram.com/*"
+      ],
       "run_at": "document_start"
     }
   ],
-
   "action": {
     "default_popup": "/options/main.html",
     "default_title": "Remove Youtube Suggestions",
@@ -45,7 +55,6 @@
       "128": "/images/128.png"
     }
   },
-
   "options_ui": {
     "page": "/options/main.html",
     "open_in_tab": true
@@ -55,10 +64,19 @@
   ],
   "host_permissions": [
     "*://www.youtube.com/*",
-    "*://m.youtube.com/*"
+    "*://m.youtube.com/*",
+    "*://www.facebook.com/*",
+    "*://www.instagram.com/*"
   ],
-  "web_accessible_resources": [{
-    "resources": ["/images/rys.svg"],
-    "matches": ["*://www.youtube.com/*", "*://m.youtube.com/*"]
-  }]
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "/images/rys.svg"
+      ],
+      "matches": [
+        "*://www.youtube.com/*",
+        "*://m.youtube.com/*"
+      ]
+    }
+  ]
 }

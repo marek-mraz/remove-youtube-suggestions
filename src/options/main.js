@@ -262,9 +262,15 @@ function populateOptions(SECTIONS, headerSettings, SETTING_VALUES) {
     });
   }
 
-  // Pre-select sidebar. Non-premium users default to "free"; others use URL-based section.
+  // Pre-select sidebar. Facebook/Instagram tabs win on their sites (their
+  // options are free-tier); otherwise non-premium users default to "free" and
+  // premium users get the URL-based YouTube section.
   const tier = License.getTierSync(SETTING_VALUES['license_token'], SETTING_VALUES['session_token']);
-  if (tier !== TIER.PREMIUM) {
+  if (facebookRegex.test(currentUrl)) {
+    qs('.sidebar_section[tag="Facebook"]').click();
+  } else if (instagramRegex.test(currentUrl)) {
+    qs('.sidebar_section[tag="Instagram"]').click();
+  } else if (tier !== TIER.PREMIUM) {
     qs('#free_sidebar').click();
   } else if (resultsPageRegex.test(currentUrl)) {
     qs('.sidebar_section[tag="Search"]').click();
@@ -406,6 +412,21 @@ function updateSetting(id, value, { write=true, manual=false }={}) {
   // Special cases
   if (id === 'global_enable' && manual) {
     updateSetting('nextTimedChange', false);
+  }
+
+  // Auto-revert: a manual OFF on a protected feature schedules a restore in
+  // AUTO_REVERT_DELAY_MS; a manual ON cancels any pending restore for it.
+  // Programmatic changes (effects, schedule, timed changes) never schedule.
+  if (manual && AUTO_REVERT_IDS.has(id)) {
+    browser.storage.local.get('pending_reverts', ({ pending_reverts }) => {
+      const pending = pending_reverts || {};
+      if (value === false && cache['auto_revert'] !== false) {
+        pending[id] = Date.now() + AUTO_REVERT_DELAY_MS;
+      } else {
+        delete pending[id];
+      }
+      browser.storage.local.set({ pending_reverts: pending });
+    });
   }
 
   const timeInfoIds = [
@@ -621,6 +642,14 @@ function timeLoop() {
       }
     }
   }
+
+  // Execute due auto-reverts (features manually turned off > 1 minute ago)
+  browser.storage.local.get('pending_reverts', ({ pending_reverts }) => {
+    const { due, remaining } = processPendingReverts(pending_reverts, (id, value) => {
+      updateSetting(id, value);
+    });
+    if (due.length) browser.storage.local.set({ pending_reverts: remaining });
+  });
 
   updateTimeInfo();
   timeLoopId = setTimeout(() => timeLoop(), 2_000);

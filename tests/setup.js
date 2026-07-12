@@ -105,6 +105,8 @@ function createBaseContext(extraGlobals = {}) {
     RegExp,
     Set,
     Map,
+    URL,
+    URLSearchParams,
     fetch: async () => { throw new Error('fetch not mocked'); },
     atob: (str) => Buffer.from(str, 'base64').toString('binary'),
     btoa: (str) => Buffer.from(str, 'binary').toString('base64'),
